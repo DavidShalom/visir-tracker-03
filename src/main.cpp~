@@ -1,0 +1,103 @@
+#include "types.h"
+#include "CameraController.h"
+#include "Face.h"
+#include "Marker.h"
+
+using namespace cv;
+
+std::vector<ptr_face_t> detectFaces(Mat img);
+std::vector<Point2f> featureExtraction((Mat img);
+
+int main() {
+	
+
+	std::vector<Point2f> vPoints;
+	std::vector<ptr_face_t> vpFaceses;
+	
+	namedWindow("Camera");
+	
+	// mouse callback function which fills vPoints with coordinates of mouse clicks
+	setMouseCallback("Camera", [] (int event, int x, int y, int flags, void* userdata) {
+		if (userdata && event == EVENT_LBUTTONDOWN) {
+			std::vector<Point2f> *pvPoints = (std::vector<Point2f> *) userdata;
+			pvPoints->push_back(Point2f(x, y));
+		}
+	}, (void*) &vPoints);
+	
+	CCameraCantroller controller(16);
+
+	controller.init();
+	controller.start();
+	
+	// Main loop
+	Mat img, mask;
+	float attenuation = 0.5f;
+	for(;;) {
+		img = controller.getFrame();
+
+		if (!img.empty()) {
+			if (mask.empty()) mask = Mat(img.size(), img.type());
+			mask.setTo(0);
+
+			// ------ PUT YOUR CODE HERE -------
+			vpFaceses =  detectFaces(mask);
+			CMarker::markFaces(mask, vpFaceses);
+			
+			// ------ PUT YOUR CODE HERE -------
+			vPoints =featureExtraction(mask);
+			CMarker::markPoints(mask, vPoints);
+			// { hFlow, vFlow } = calculate optical flow (vPoints)
+			// CMarker::markVecOFF(mask, hFlow, vFlow);
+			
+			CMarker::markGUI(mask);
+			
+
+			add(img, attenuation * mask, img);
+
+			imshow("Camera", img);
+		}
+		int key = waitKey(30);
+		if (key == 27 || key == 'q') break;
+		if (key == 'a') attenuation *= 1.1f;
+		if (key == 'z') attenuation *= 0.9f;
+	}
+
+	controller.stop();
+	return 0;
+}
+
+	
+std::vector<ptr_face_t> detectFaces(Mat img)
+{
+    String face_cascade_name;
+    CascadeClassifier face_cascade;
+    Mat frame_gray;
+    std::vector<ptr_face_t> vpFaces;
+    
+    face_cascade_name = samples::findFile("../data/haarcascades/haarcascade_frontalface_alt.xml");
+
+    face_cascade.load(face_cascade_name);
+    cvtColor(img, frame_gray, COLOR_BGR2GRAY);
+    equalizeHist(frame_gray, frame_gray);
+
+    std::vector<Rect> faces;
+    face_cascade.detectMultiScale(frame_gray, faces);
+
+    for (auto face : faces)
+    {
+       CFace* vpFace = new  CFace(face);
+       vpFaces.emplace_back(vpFace);
+    }
+    
+    return vpFaces;
+}
+
+
+std::vector<Point2f> featureExtraction(Mat img)
+{
+	Mat img_gray;
+	std::vector<Point2f> corners;
+	cvtColor(img, img_gray, COLOR_BGR2GRAY); 
+	goodFeaturesToTrack(img_gray, corners, 125, 0.01, 10);
+	return corners
+}

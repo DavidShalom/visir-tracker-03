@@ -11,9 +11,6 @@ file(GLOB HEADERS "src/*.h")
 source_group("Include" FILES ${INCLUDE})
 source_group("" FILES ${INCLUDE} ${SOURCES} ${HEADERS}) 
 source_group("Source Files" FILES "src/main.cpp") 
-source_group("Source Files\\Camera Controller" FILES "src/CameraController.h" "src/CameraController.cpp")
-source_group("Source Files\\Face" FILES "src/Face.h" "src/Face.cpp")
-source_group("Source Files\\Marker" FILES "src/Marker.h" "src/Marker.cpp")
 
 # OpenCV package
 find_package(OpenCV 4.0 REQUIRED core highgui imgproc imgcodecs PATHS "$ENV{OPENCVDIR}/build")
@@ -30,7 +27,10 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zi /wd5040")
 set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS} /DEBUG /INCREMENTAL:NO /OPT:REF /OPT:ICF")
 endif(MSVC)
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin) 
+set(OpenCV_DIR /usr/local/Cellar/opencv/4.2.0_1/installation/OpenCV-master/lib/cmake/opencv4)
 #set(IB_API_INCLUDE_DIR "" CACHE PATH "Path to the IP API")
+set(GCC_COVERAGE_LINK_FLAGS    "-L/usr/local/Cellar/opencv/4.2.0_1/lib -lopencv_core -lopencv_imgproc -lopencv_features2d -lopencv_highgui -lopencv_objdetect -lopencv_videoio -lopencv_video")
+set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${GCC_COVERAGE_LINK_FLAGS}")
 
 # Properties -> C/C++ -> General -> Additional Include Directories
 include_directories(${PROJECT_SOURCE_DIR}/include ${OpenCV_INCLUDE_DIRS})
@@ -42,3 +42,4 @@ add_executable(visir-tracker ${INCLUDE} ${SOURCES} ${HEADERS})
 
 # Properties -> Linker -> Input -> Additional Dependencies
 target_link_libraries(visir-tracker ${OpenCV_LIBS})
+

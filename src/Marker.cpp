@@ -1,12 +1,19 @@
 #include "Marker.h"
 
+using namespace cv;
+
+
 void CMarker::markFaces(Mat& img, const std::vector<ptr_face_t>& vFaces)
-{
-	for (auto face : vFaces) {
+{	
+	for (auto face : vFaces)
+	{
 		// ------ PUT YOUR CODE HERE -------
 		// 1. Draw all faces using face->getArea();
 		// 2. Print the text using face->getText();
 		// 3. Print face id using face->getId();
+	  
+	         Point center(face->getArea().x + face->getArea().width/2, face->getArea().y + face->getArea().height/2);
+		 ellipse(img, center, Size(face->getArea().width/2, face->getArea().height/2 ), 0, 0, 360, Scalar(255, 0, 255), 4);
 	}
 }
 
@@ -16,9 +23,27 @@ void CMarker::markPoints(Mat& img, const std::vector<Point2f>& vPoints, Scalar c
 		circle(img, point, 3, color, 2);
 }
 
-void CMarker::markVecOFF(Mat& img, const Mat& hFlow, const Mat& vFlow)
+void CMarker::markVecOFF(Mat& img, Mat& mask,  const std::vector<std::tuple<Point2f, Point2f>>& flowPoints)
 {
 	// ------ PUT YOUR CODE HERE -------
+        std::vector<Scalar> colors;
+	RNG rand;
+    
+	for(int i = 0; i < 100; i++)
+	  {
+	    int r = rand.uniform(0, 256);
+	    int g = rand.uniform(0, 256);
+	    int b = rand.uniform(0, 256);
+	    colors.push_back(Scalar(r,g,b));
+	  }
+	int j = 0;
+  	for(const auto &i : flowPoints)
+	{	  
+	  line(mask, std::get<1>(i), std::get<0>(i), colors[j], 2);
+	  circle(img, std::get<1>(i), 5, colors[j], -2);
+	  j++;
+	}
+
 }
 
 void CMarker::markGUI(Mat& img)

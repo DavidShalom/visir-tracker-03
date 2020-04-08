@@ -13,14 +13,21 @@ void CCameraCantroller::start()
 	m_terminate_producer = false;
 	m_thr_producer = std::thread([&]() {
 		Mat img;
+		int bufferSize = m_vFrameBuffer.size();
 		for (;;) {
 			// ------ MODIFY CODE HERE -------
 			m_mtx_FrameBuffer.lock();			
-			m_camera >> m_vFrameBuffer[pointer_in % m_vFrameBuffer.size()];
-			pointer_in++;
+			m_camera >> m_vFrameBuffer[pointer_in];
+			if(m_FrameBufferFull)
+			{
+			  pointer_out = (pointer_out + 1) % bufferSize;
+			  std::cout << "Dropped frame" << std::endl;
+			}
+			pointer_in = (pointer_in + 1) % bufferSize;
+			m_FrameBufferFull = (pointer_in == pointer_out) && (m_inFrameCounter != 0) && ((m_inFrameCounter - m_outFrameCounter) ==  bufferSize);
 			m_mtx_FrameBuffer.unlock();
 			m_inFrameCounter++;
-
+			
 			std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
 			if (m_terminate_producer) break;
@@ -57,13 +64,15 @@ void CCameraCantroller::start()
 Mat CCameraCantroller::getFrame()
 {
 	Mat res;
+	int bufferSize = m_vFrameBuffer.size();
 	if (pointer_out != pointer_in) {
 	
 		// ------ MODIFY CODE HERE -------
 		m_mtx_FrameBuffer.lock();
 		if (!m_vFrameBuffer.empty()) {
-			res = m_vFrameBuffer[pointer_out % m_vFrameBuffer.size()];
-			pointer_out++;
+		  	res = m_vFrameBuffer[pointer_out];
+			m_FrameBufferFull = false;
+			pointer_out = (pointer_out + 1) %  bufferSize;
 		}
 		m_mtx_FrameBuffer.unlock();
 	}
@@ -79,5 +88,3 @@ void CCameraCantroller::stop()
 	m_terminate_counter = true;
 	m_thr_counter.join();
 }
-
-

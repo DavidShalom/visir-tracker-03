@@ -22,6 +22,7 @@ private:
 	size_t				m_outFrameCounter = 0;
 	size_t				pointer_in = 0;
 	size_t				pointer_out = 0;
+	bool                            m_FrameBufferFull = 0;
 	
 	// Producer
 	std::thread m_thr_producer;
